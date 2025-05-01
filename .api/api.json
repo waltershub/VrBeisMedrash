@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "apis": [
+    {
+      "identifier": "sefaria",
+      "source": "@sefaria/v1.0#5grgm919d900",
+      "integrity": "sha512-wWJOZY8eO8+K2WCXqka4P/ljXexsb3uVCp13UxsSgc2JpG8hHJZhxREMXkPQP3NCGwAXKrCJ4iO4ybRv/lVIiA==",
+      "installerVersion": "6.1.3"
+    }
+  ]
+}
