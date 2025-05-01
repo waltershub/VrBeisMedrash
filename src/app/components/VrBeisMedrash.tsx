@@ -45,7 +45,7 @@ function Bookshelf() {
   // Define book categories with distinctive colors
   const bookCategories = [
     { name: "Torah", baseHue: 200, count: 5 }, // Blues
-    { name: "Nevi'im", baseHue: 120, count: 5 }, // Greens
+    { name: "Neviim", baseHue: 120, count: 5 }, // Greens
     { name: "Ketuvim", baseHue: 300, count: 5 }, // Purples
     { name: "Talmud", baseHue: 0, count: 5 }, // Reds
     { name: "Midrash", baseHue: 40, count: 5 }, // Oranges/Browns
@@ -132,6 +132,42 @@ function Bookshelf() {
         <planeGeometry args={[20, 20]} />
         <meshStandardMaterial color="#212121" roughness={0.9} />
       </mesh>
+      
+      {/* Additional beis medrash elements */}
+      {/* Table */}
+      <mesh position={[0, 0.4, -1]} receiveShadow castShadow>
+        <boxGeometry args={[1.2, 0.8, 0.8]} />
+        <meshStandardMaterial color="#8d6e63" roughness={0.7} />
+      </mesh>
+      
+      {/* Chair */}
+      <group position={[0, 0.45, -0.2]}>
+        <mesh position={[0, 0, 0]} castShadow>
+          <boxGeometry args={[0.5, 0.05, 0.5]} />
+          <meshStandardMaterial color="#5d4037" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, -0.225, -0.225]} castShadow>
+          <boxGeometry args={[0.5, 0.5, 0.05]} />
+          <meshStandardMaterial color="#5d4037" roughness={0.8} />
+        </mesh>
+        {/* Chair legs */}
+        <mesh position={[0.2, -0.225, 0.2]} castShadow>
+          <boxGeometry args={[0.04, 0.45, 0.04]} />
+          <meshStandardMaterial color="#4e342e" roughness={0.7} />
+        </mesh>
+        <mesh position={[-0.2, -0.225, 0.2]} castShadow>
+          <boxGeometry args={[0.04, 0.45, 0.04]} />
+          <meshStandardMaterial color="#4e342e" roughness={0.7} />
+        </mesh>
+        <mesh position={[0.2, -0.225, -0.225]} castShadow>
+          <boxGeometry args={[0.04, 0.45, 0.04]} />
+          <meshStandardMaterial color="#4e342e" roughness={0.7} />
+        </mesh>
+        <mesh position={[-0.2, -0.225, -0.225]} castShadow>
+          <boxGeometry args={[0.04, 0.45, 0.04]} />
+          <meshStandardMaterial color="#4e342e" roughness={0.7} />
+        </mesh>
+      </group>
     </group>
   )
 }
