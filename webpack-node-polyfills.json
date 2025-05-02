@@ -1,0 +1,14 @@
+{
+  "webpack": {
+    "resolve": {
+      "fallback": {
+        "fs": false,
+        "path": false,
+        "stream": false,
+        "crypto": false
+      }
+    }
+  },
+  "description": "Next.js webpack configuration to handle Node.js modules in browser environments",
+  "usage": "This configuration should be applied in next.config.ts/js within the webpack function"
+}

@@ -7,13 +7,14 @@ import { Environment, OrbitControls } from "@react-three/drei"
 
 // Import our refactored components
 import { Bookshelf } from './Bookshelf'
-import { Table } from './Table'
-import { Chair } from './Chair'
+import { BookProvider } from './BookContext'
 
 // Create store just like in your Test component
 const store = createXRStore()
 
 export default function VrBeisMedrash() {
+  // No need for table position anymore as books will float in space
+  
   return (
     <div className="relative h-full w-full">
       <button 
@@ -25,7 +26,7 @@ export default function VrBeisMedrash() {
       <Canvas shadows camera={{ position: [0, 1.6, 1], fov: 60 }}>
         <XR store={store}>
           {/* Lighting */}
-          <ambientLight intensity={0.4} />
+          <ambientLight intensity={0.6} /> {/* Increased ambient light */}
           <directionalLight 
             position={[5, 5, 5]} 
             intensity={0.8} 
@@ -43,9 +44,9 @@ export default function VrBeisMedrash() {
           
           <Suspense fallback={null}>
             <Environment preset="apartment" />
-            <Bookshelf />
-            <Table />
-            <Chair />
+            <BookProvider>
+              <Bookshelf />
+            </BookProvider>
           </Suspense>
         </XR>
         <OrbitControls target={[0, 1.5, -2]} />
