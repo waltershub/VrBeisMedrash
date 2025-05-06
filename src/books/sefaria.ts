@@ -1,4 +1,3 @@
-import sefaria from '@api/sefaria';
 import { SefariaBook } from '../app/components/types';
 
 // Need to declare the module to correctly import the JSON file
@@ -48,7 +47,7 @@ export const getTalmudBooks = (): SefariaBook[] => {
      }
      
      // Process all Talmud tractates properly by going through the sedarim (categories)
-     let talmudBooks: SefariaBook[] = [];
+     const talmudBooks: SefariaBook[] = [];
      
      // Process each type of Talmud (Bavli and Yerushalmi)
      talmudSection.contents.forEach((talmudType: SefariaBook) => {
@@ -87,11 +86,17 @@ export const getTalmudBooks = (): SefariaBook[] => {
 export const getTalmudCategoryColors = () => {
   return {
     "Seder Zeraim": "#8BC34A",  // Light Green
+    "Zeraim": "#8BC34A",        // Light Green (without prefix)
     "Seder Moed": "#FF9800",    // Orange
+    "Moed": "#FF9800",          // Orange (without prefix)
     "Seder Nashim": "#E91E63",  // Pink
+    "Nashim": "#E91E63",        // Pink (without prefix)
     "Seder Nezikin": "#F44336", // Red
+    "Nezikin": "#F44336",       // Red (without prefix)
     "Seder Kodashim": "#9C27B0", // Purple
-    "Seder Tahorot": "#2196F3"   // Blue
-  };
+    "Kodashim": "#9C27B0",       // Purple (without prefix)
+    "Seder Tahorot": "#2196F3",  // Blue
+    "Tahorot": "#2196F3"         // Blue (without prefix)
+  } as Record<string, string>;  // Add index signature to allow string indexing
 }
 
