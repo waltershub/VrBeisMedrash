@@ -36,11 +36,17 @@ export function Book({ position, color, index, title = "Sefer", parentCategory, 
     } else if (!isBookOpen) {
       // Book is selected but not open, so open it
       setIsBookOpen(true);
-    } else {
-      // Book is open, close it and return to shelf
-      setIsBookOpen(false);
-      setSelectedBook(null);
     }
+  };
+  
+  // New handler specifically for dismissing the book
+  const handleDismissClick = (event: React.MouseEvent) => {
+    // Stop event propagation to prevent triggering the book click
+    event.stopPropagation();
+    
+    // Close book and return to shelf
+    setIsBookOpen(false);
+    setSelectedBook(null);
   };
   
   // Calculate PDF URL based on book title
@@ -56,7 +62,7 @@ export function Book({ position, color, index, title = "Sefer", parentCategory, 
       onClick={handleBookClick}
     >
       {/* CLOSED BOOK - shown on shelf or when selected but not open */}
-      {!isBookOpen && (
+      {(!isBookOpen || !isSelected) && (
         <mesh ref={meshRef} castShadow receiveShadow>
           <boxGeometry args={[0.15, 0.4, 0.05]} />
           <meshStandardMaterial color={color} roughness={0.7} />
@@ -89,16 +95,62 @@ export function Book({ position, color, index, title = "Sefer", parentCategory, 
               {talmudType ? ` (${talmudType})` : ''}
             </Text>
           )}
+          
+          {/* Dismiss button - only visible when the book is selected */}
+          {isSelected && (
+            <group position={[0, -0.65, 0]} onClick={handleDismissClick}>
+              {/* Button background */}
+              <mesh castShadow receiveShadow>
+                <boxGeometry args={[0.25, 0.08, 0.02]} />
+                <meshStandardMaterial color="red" roughness={0.5} />
+              </mesh>
+              
+              {/* Button text */}
+              <Text
+                position={[0, 0, 0.011]}
+                rotation={[0, 0, 0]}
+                fontSize={0.03}
+                color="white"
+                anchorX="center"
+                anchorY="middle"
+              >
+                Dismiss
+              </Text>
+            </group>
+          )}
         </mesh>
       )}
       
       {/* OPEN BOOK - only visible when selected and opened */}
       {isSelected && isBookOpen && (
-        <Pages 
-          pdfUrl={getPdfUrl()}
-          position={[0, 0, 0]}
-          pageScale={0.707}
-        />
+        <>
+          <Pages 
+            pdfUrl={getPdfUrl()}
+            position={[0, 0, 0]}
+            pageScale={0.707}
+          />
+          
+          {/* Dismiss button for open book - positioned below the open book */}
+          <group position={[0, -0.8, 0]} onClick={handleDismissClick}>
+            {/* Button background */}
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[0.4, 0.1, 0.02]} />
+              <meshStandardMaterial color="red" roughness={0.5} />
+            </mesh>
+            
+            {/* Button text */}
+            <Text
+              position={[0, 0, 0.011]}
+              rotation={[0, 0, 0]}
+              fontSize={0.04}
+              color="white"
+              anchorX="center"
+              anchorY="middle"
+            >
+              Dismiss
+            </Text>
+          </group>
+        </>
       )}
     </a.group>
   )
