@@ -15,7 +15,8 @@ const BOOK_WIDTH = 0.15; // Book width
 const BOOK_SPACING = 0.03; // Space between books
 const SECTION_COUNT = 5; // Number of sections per shelf
 const MAX_ROWS_PER_BOOKSHELF = 3; // Maximum number of rows/shelves per bookshelf unit
-const BOOKSHELF_HORIZONTAL_SPACING = 6; // Horizontal spacing between bookshelf units
+const BOOKSHELF_HORIZONTAL_SPACING = 5.2; // Reduced horizontal spacing between bookshelf units
+const BOOKSHELF_HORIZONTAL_OFFSET = -5; // Shift everything left to keep centered
 
 // Shelf dimensions
 const SHELF_HEIGHT = 1.2; // Height of the shelf unit
@@ -127,8 +128,8 @@ export function Bookshelf() {
       const leftoverSpace = usableWidth - totalBooksWidth;
       const startOffset = paddingLeft + (leftoverSpace / 2);
       
-      // Add the bookshelf column offset to the x position
-      const bookshelfXOffset = bookshelfColumn * BOOKSHELF_HORIZONTAL_SPACING;
+      // Add the bookshelf column offset to the x position, plus the global horizontal offset
+      const bookshelfXOffset = bookshelfColumn * BOOKSHELF_HORIZONTAL_SPACING + BOOKSHELF_HORIZONTAL_OFFSET;
       const x = sectionStartX + startOffset + (positionInSection * (BOOK_WIDTH + BOOK_SPACING)) + (BOOK_WIDTH / 2) + bookshelfXOffset;
       
       // Calculate y position - centered vertically within the shelf
@@ -330,8 +331,8 @@ export function Bookshelf() {
         // Calculate the shelf index
         const shelfIndex = colIndex * MAX_ROWS_PER_BOOKSHELF + rowIndex;
         
-        // Calculate position
-        const xPosition = colIndex * BOOKSHELF_HORIZONTAL_SPACING;
+        // Calculate position - apply the global horizontal offset
+        const xPosition = colIndex * BOOKSHELF_HORIZONTAL_SPACING + BOOKSHELF_HORIZONTAL_OFFSET;
         const yPosition = SHELF_Y_POSITION + (rowIndex * SHELF_VERTICAL_SPACING);
         
         shelves.push(
@@ -366,8 +367,8 @@ export function Bookshelf() {
       {/* Generate shelf rows based on layout */}
       {generateShelfRows()}
       
-      {/* Ambient decorations - positioned above the rightmost bookshelf */}
-      <mesh position={[(shelfLayout.columns - 1) * BOOKSHELF_HORIZONTAL_SPACING / 2, 4, -2]} castShadow>
+      {/* Ambient decorations - positioned at the center */}
+      <mesh position={[BOOKSHELF_HORIZONTAL_OFFSET + ((shelfLayout.columns - 1) * BOOKSHELF_HORIZONTAL_SPACING / 2), 4, -2]} castShadow>
         <sphereGeometry args={[0.2]} />
         <meshStandardMaterial color="#FFD700" metalness={0.8} roughness={0.2} emissive="#FFA500" emissiveIntensity={0.2} />
       </mesh>
