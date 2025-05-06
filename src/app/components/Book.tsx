@@ -49,11 +49,6 @@ export function Book({ position, color, index, title = "Sefer", parentCategory, 
     setSelectedBook(null);
   };
   
-  // Calculate PDF URL based on book title
-  const getPdfUrl = () => {
-    return '/pdfs/Hebrewbooks_org_37952.pdf';
-  };
-  
   return (
     <a.group 
       position={bookPosition}
@@ -125,7 +120,6 @@ export function Book({ position, color, index, title = "Sefer", parentCategory, 
       {isSelected && isBookOpen && (
         <>
           <Pages 
-            pdfUrl={getPdfUrl()}
             position={[0, 0, 0]}
             pageScale={0.707}
           />

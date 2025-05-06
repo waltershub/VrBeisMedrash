@@ -3,7 +3,7 @@
 import { useFrame } from '@react-three/fiber';
 import { animated, useSpring } from '@react-spring/three';
 import { useEffect, useRef, useState } from 'react';
-import { CanvasTexture, DoubleSide, SRGBColorSpace } from 'three';
+import { DoubleSide } from 'three';
 import { Text } from "@react-three/drei";
 
 // Hebrew sample texts
@@ -17,105 +17,23 @@ const hebrewTexts = [
 ];
 
 const bookTitles = {
-  "Hebrewbooks_org_37952.pdf": "ספר תורת רפאל",
   "default": "ספר קודש"
 };
 
 type PagesProps = {
-  pdfUrl: string;
   position?: [number, number, number];
   pageScale?: number;
 };
 
 export default function Pages({
-  pdfUrl,
   position = [0, 0, 0],
   pageScale = 0.707,
 }: PagesProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 20;
-  const [leftTexture, setLeftTexture] = useState<CanvasTexture | null>(null);
-  const [rightTexture, setRightTexture] = useState<CanvasTexture | null>(null);
   const [hoveredSide, setHoveredSide] = useState<'left' | 'right' | null>(null);
   const flippingRef = useRef(false);
   
-  // Get book title from filename
-  const getBookTitle = () => {
-    const filename = pdfUrl.split('/').pop() || '';
-    return bookTitles[filename] || bookTitles.default;
-  };
-
-  // Create page textures when page changes
-  useEffect(() => {
-    const createPageTextures = () => {
-      setLeftTexture(createPageTexture(currentPage - 1 || 1));
-      setRightTexture(createPageTexture(currentPage));
-    };
-    
-    createPageTextures();
-    
-    return () => {
-      if (leftTexture) leftTexture.dispose();
-      if (rightTexture) rightTexture.dispose();
-    };
-  }, [currentPage, pdfUrl]);
-
-  // Create a texture for a page
-  const createPageTexture = (pageNum: number) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 1448;
-    const ctx = canvas.getContext('2d');
-    
-    if (!ctx) return null;
-    
-    // Pure white background for maximum readability
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw a colored border for debugging
-    ctx.strokeStyle = '#ff0000';
-    ctx.lineWidth = 10;
-    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-    
-    // Add very large page number at the bottom with red text for visibility
-    ctx.fillStyle = '#ff0000';
-    ctx.font = 'bold 100px Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`PAGE ${pageNum}`, canvas.width/2, canvas.height - 100);
-    
-    // Add large book title at top with red text
-    ctx.fillStyle = '#ff0000';
-    ctx.font = 'bold 80px Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText("TESTING TEXT", canvas.width/2, 100);
-    
-    // Add chapter title with extremely large red text
-    ctx.font = 'bold 120px Arial, sans-serif';
-    ctx.fillText(`פרק ${pageNum}`, ctx.canvas.width/2, 300);
-    
-    // Draw some test paragraphs with huge red text
-    ctx.font = 'bold 90px Arial, sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#ff0000';
-    
-    // Draw a test paragraph with enormous text
-    ctx.fillText("בראשית ברא אלהים", ctx.canvas.width - 80, 500);
-    ctx.fillText("את השמים ואת הארץ", ctx.canvas.width - 80, 600);
-    
-    // Create the texture from the canvas
-    const texture = new CanvasTexture(canvas);
-    texture.colorSpace = SRGBColorSpace;
-    texture.needsUpdate = true; // Force the texture to update
-    return texture;
-  };
-
-  // Update textures
-  useFrame(() => {
-    if (leftTexture) leftTexture.needsUpdate = true;
-    if (rightTexture) rightTexture.needsUpdate = true;
-  });
-
   // Page turning animation
   const [{ leftRotation, rightRotation }, api] = useSpring(() => ({ 
     leftRotation: 0, 
@@ -184,7 +102,6 @@ export default function Pages({
             roughness={0.5}
             metalness={0.1}
             side={DoubleSide}
-            map={leftTexture || undefined}
           />
         </animated.mesh>
         
@@ -249,7 +166,6 @@ export default function Pages({
             roughness={0.5}
             metalness={0.1}
             side={DoubleSide}
-            map={rightTexture || undefined}
           />
         </animated.mesh>
         
