@@ -210,7 +210,7 @@ export function Bookshelf() {
       }
       
       // Position all books from this category together
-      booksInCategory.forEach((book: SefariaBook, i: number) => {
+      booksInCategory.forEach((book: SefariaBook) => {
         const isTorah = categoryKey === "Torah";
         const isTalmud = !isTorah;
         let talmudType, category;

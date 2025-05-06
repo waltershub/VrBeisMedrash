@@ -1,7 +1,6 @@
 "use client"
 
-import { useFrame } from '@react-three/fiber';
-import { animated, useSpring } from '@react-spring/three';
+import { animated, useSpring, SpringValue } from '@react-spring/three';
 import { useRef, useState } from 'react';
 import { DoubleSide } from 'three';
 import { Text } from "@react-three/drei";
@@ -62,7 +61,7 @@ const BookPage = ({
   side: 'left' | 'right',
   pageNumber: number,
   textContent: string,
-  rotation: any,
+  rotation: number | SpringValue<number>, // Updated to accept SpringValue
   width: number,
   height: number,
   onNavigate: () => void,

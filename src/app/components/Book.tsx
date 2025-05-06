@@ -75,7 +75,7 @@ const ClosedBookView = ({
   talmudType,
   onDismiss 
 }: {
-  meshRef: React.RefObject<Mesh>,
+  meshRef: React.RefObject<Mesh | null>,  // Updated to allow null values
   color: string,
   title: string,
   isSelected: boolean,
@@ -83,7 +83,7 @@ const ClosedBookView = ({
   talmudType?: string,
   onDismiss: (event: React.MouseEvent) => void
 }) => (
-  <mesh ref={meshRef} castShadow receiveShadow>
+  <mesh ref={meshRef as React.RefObject<Mesh>} castShadow receiveShadow>
     <boxGeometry args={[0.15, 0.4, 0.05]} />
     <meshStandardMaterial color={color} roughness={0.7} />
     
