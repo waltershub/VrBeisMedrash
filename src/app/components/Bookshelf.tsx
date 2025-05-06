@@ -14,6 +14,8 @@ const DIVIDER_WIDTH = 0.04;
 const BOOK_WIDTH = 0.15; // Book width
 const BOOK_SPACING = 0.03; // Space between books
 const SECTION_COUNT = 5; // Number of sections per shelf
+const MAX_ROWS_PER_BOOKSHELF = 3; // Maximum number of rows/shelves per bookshelf unit
+const BOOKSHELF_HORIZONTAL_SPACING = 6; // Horizontal spacing between bookshelf units
 
 // Shelf dimensions
 const SHELF_HEIGHT = 1.2; // Height of the shelf unit
@@ -25,14 +27,22 @@ const SHELF_Y_POSITION = 1.6; // Y position of the first shelf center
 const SHELF_VERTICAL_SPACING = 1.3; // Vertical space between shelves
 
 /**
- * Helper component to create a single shelf unit
+ * Helper component to create a single shelf row
  */
-const ShelfUnit = ({ yPosition, shelfIndex }: { yPosition: number, shelfIndex: number }) => {
+const ShelfRow = ({ 
+  yPosition, 
+  xPosition, 
+  rowIndex 
+}: { 
+  yPosition: number, 
+  xPosition: number,
+  rowIndex: number 
+}) => {
   // Generate divider positions for this shelf
   const dividerPositions = [-1.5, -0.5, 0.5, 1.5]; // Horizontal positions for dividers
   
   return (
-    <group>
+    <group position={[xPosition, 0, 0]}>
       {/* Back panel */}
       <mesh position={[0, yPosition, WALL_Z_POSITION]} receiveShadow castShadow>
         <boxGeometry args={[SHELF_WIDTH, SHELF_HEIGHT, 0.1]} />
@@ -65,7 +75,7 @@ const ShelfUnit = ({ yPosition, shelfIndex }: { yPosition: number, shelfIndex: n
       
       {/* Middle dividers */}
       {dividerPositions.map((x, i) => (
-        <mesh key={`divider-${shelfIndex}-${i}`} position={[x, yPosition, SHELF_Z_POSITION]} receiveShadow castShadow>
+        <mesh key={`divider-${rowIndex}-${i}`} position={[x, yPosition, SHELF_Z_POSITION]} receiveShadow castShadow>
           <boxGeometry args={[DIVIDER_WIDTH, SHELF_HEIGHT - SHELF_THICKNESS*2, SHELF_DEPTH - 0.02]} />
           <meshStandardMaterial color="#5d4037" roughness={0.9} />
         </mesh>
@@ -77,7 +87,10 @@ const ShelfUnit = ({ yPosition, shelfIndex }: { yPosition: number, shelfIndex: n
 export function Bookshelf() {
   const groupRef = useRef<Group>(null);
   const [books, setBooks] = useState<BookData[]>([]);
-  const [numShelves, setNumShelves] = useState(1);
+  const [shelfLayout, setShelfLayout] = useState<{ rows: number, columns: number }>({
+    rows: 1,
+    columns: 1
+  });
   const talmudCategoryColors = getTalmudCategoryColors();
   
   useEffect(() => {
@@ -92,6 +105,10 @@ export function Bookshelf() {
     
     // Function to calculate book position within a section
     const calculateBookPosition = (sectionIndex: number, positionInSection: number, shelfIndex: number) => {
+      // Calculate which bookshelf unit this shelf belongs to
+      const bookshelfColumn = Math.floor(shelfIndex / MAX_ROWS_PER_BOOKSHELF);
+      const shelfRow = shelfIndex % MAX_ROWS_PER_BOOKSHELF;
+      
       // Calculate horizontal position - simply place books from left to right
       const sectionStartX = dividerPositions[sectionIndex];
       const sectionEndX = dividerPositions[sectionIndex + 1];
@@ -110,10 +127,12 @@ export function Bookshelf() {
       const leftoverSpace = usableWidth - totalBooksWidth;
       const startOffset = paddingLeft + (leftoverSpace / 2);
       
-      const x = sectionStartX + startOffset + (positionInSection * (BOOK_WIDTH + BOOK_SPACING)) + (BOOK_WIDTH / 2);
+      // Add the bookshelf column offset to the x position
+      const bookshelfXOffset = bookshelfColumn * BOOKSHELF_HORIZONTAL_SPACING;
+      const x = sectionStartX + startOffset + (positionInSection * (BOOK_WIDTH + BOOK_SPACING)) + (BOOK_WIDTH / 2) + bookshelfXOffset;
       
       // Calculate y position - centered vertically within the shelf
-      const y = SHELF_Y_POSITION + (shelfIndex * SHELF_VERTICAL_SPACING);
+      const y = SHELF_Y_POSITION + (shelfRow * SHELF_VERTICAL_SPACING);
       
       // Add a small random offset to z for natural look, but keep books close to back of shelf
       const z = SHELF_Z_POSITION + (Math.random() * 0.03);
@@ -254,9 +273,15 @@ export function Bookshelf() {
       }
     });
     
-    // Calculate the number of shelves needed (add 1 to account for currentShelf being 0-indexed)
-    const neededShelves = currentShelf + 1;
-    setNumShelves(neededShelves);
+    // Calculate the layout dimensions
+    const totalShelves = currentShelf + 1; // Add 1 because currentShelf is 0-indexed
+    const columns = Math.ceil(totalShelves / MAX_ROWS_PER_BOOKSHELF);
+    const rows = Math.min(MAX_ROWS_PER_BOOKSHELF, totalShelves);
+    
+    setShelfLayout({
+      rows: rows,
+      columns: columns
+    });
     
     // Set all books
     setBooks(bookData);
@@ -294,6 +319,35 @@ export function Bookshelf() {
     return `#${Math.floor(r).toString(16).padStart(2, '0')}${Math.floor(g).toString(16).padStart(2, '0')}${Math.floor(b).toString(16).padStart(2, '0')}`;
   }
   
+  // Generate shelf row components based on layout
+  const generateShelfRows = () => {
+    const shelves = [];
+    
+    // For each column
+    for (let colIndex = 0; colIndex < shelfLayout.columns; colIndex++) {
+      // For each row in the column
+      for (let rowIndex = 0; rowIndex < shelfLayout.rows; rowIndex++) {
+        // Calculate the shelf index
+        const shelfIndex = colIndex * MAX_ROWS_PER_BOOKSHELF + rowIndex;
+        
+        // Calculate position
+        const xPosition = colIndex * BOOKSHELF_HORIZONTAL_SPACING;
+        const yPosition = SHELF_Y_POSITION + (rowIndex * SHELF_VERTICAL_SPACING);
+        
+        shelves.push(
+          <ShelfRow
+            key={`shelf-${shelfIndex}`}
+            xPosition={xPosition}
+            yPosition={yPosition}
+            rowIndex={shelfIndex}
+          />
+        );
+      }
+    }
+    
+    return shelves;
+  };
+  
   return (
     <group ref={groupRef} position={[0, 0, 0]}>
       {/* Books on shelves */}
@@ -309,24 +363,18 @@ export function Bookshelf() {
         />
       ))}
       
-      {/* Generate shelf units based on calculated number of shelves */}
-      {Array.from({ length: numShelves }).map((_, i) => (
-        <ShelfUnit 
-          key={`shelf-${i}`} 
-          yPosition={SHELF_Y_POSITION + (i * SHELF_VERTICAL_SPACING)} 
-          shelfIndex={i} 
-        />
-      ))}
+      {/* Generate shelf rows based on layout */}
+      {generateShelfRows()}
       
-      {/* Ambient decorations */}
-      <mesh position={[0, 3 + (numShelves - 1) * SHELF_VERTICAL_SPACING, -2]} castShadow>
+      {/* Ambient decorations - positioned above the rightmost bookshelf */}
+      <mesh position={[(shelfLayout.columns - 1) * BOOKSHELF_HORIZONTAL_SPACING / 2, 4, -2]} castShadow>
         <sphereGeometry args={[0.2]} />
         <meshStandardMaterial color="#FFD700" metalness={0.8} roughness={0.2} emissive="#FFA500" emissiveIntensity={0.2} />
       </mesh>
       
       {/* Floor */}
       <mesh rotation={[-Math.PI/2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[20, 20]} />
+        <planeGeometry args={[30, 20]} />
         <meshStandardMaterial color="#212121" roughness={0.9} />
       </mesh>
     </group>
