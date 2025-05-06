@@ -2,7 +2,7 @@
 
 import { useFrame } from '@react-three/fiber';
 import { animated, useSpring } from '@react-spring/three';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { DoubleSide } from 'three';
 import { Text } from "@react-three/drei";
 
@@ -16,9 +16,134 @@ const hebrewTexts = [
   "אִם אֵין אֲנִי לִי, מִי לִי. וּכְשֶׁאֲנִי לְעַצְמִי, מָה אֲנִי. וְאִם לֹא עַכְשָׁיו, אֵימָתַי"
 ];
 
-const bookTitles = {
-  "default": "ספר קודש"
+// Navigation button component
+const NavigationButton = ({ 
+  position, 
+  text, 
+  visible = true 
+}: { 
+  position: [number, number, number], 
+  text: string, 
+  visible: boolean 
+}) => {
+  if (!visible) return null;
+  
+  return (
+    <group position={position}>
+      <mesh>
+        <planeGeometry args={[0.2, 0.2]} />
+        <meshBasicMaterial color="#0000ff" transparent opacity={0.6} />
+      </mesh>
+      <Text
+        position={[0, 0, 0.01]}
+        fontSize={0.05}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {text}
+      </Text>
+    </group>
+  );
 };
+
+// Book page component (single page)
+const BookPage = ({ 
+  side, 
+  pageNumber, 
+  textContent,
+  rotation, 
+  width,
+  height,
+  onNavigate,
+  onPointerEnter,
+  onPointerLeave
+}: { 
+  side: 'left' | 'right',
+  pageNumber: number,
+  textContent: string,
+  rotation: any,
+  width: number,
+  height: number,
+  onNavigate: () => void,
+  onPointerEnter: () => void,
+  onPointerLeave: () => void
+}) => {
+  return (
+    <group position={[side === 'left' ? -width/2 : width/2, 0, 0]}>
+      <animated.mesh
+        rotation-y={rotation}
+        onPointerEnter={onPointerEnter}
+        onPointerLeave={onPointerLeave}
+        onClick={onNavigate}
+      >
+        <planeGeometry args={[width, height]} />
+        <meshStandardMaterial
+          color="#ffffff"
+          roughness={0.5}
+          metalness={0.1}
+          side={DoubleSide}
+        />
+      </animated.mesh>
+      
+      {/* Hebrew text on page */}
+      <Text
+        position={[0, 0.1, 0.01]}
+        rotation={[0, 0, 0]}
+        fontSize={0.04}
+        color="#000000"
+        anchorX="center"
+        anchorY="middle"
+        maxWidth={width * 0.8}
+        lineHeight={1.5}
+        textAlign="right"
+      >
+        {textContent}
+      </Text>
+      
+      {/* Page number */}
+      <Text
+        position={[0, -height/2 + 0.05, 0.01]}
+        rotation={[0, 0, 0]}
+        fontSize={0.035}
+        color="#000000"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {pageNumber}
+      </Text>
+    </group>
+  );
+};
+
+// Book binding component
+const BookBinding = ({ height }: { height: number }) => (
+  <mesh position={[0, 0, -0.01]}>
+    <boxGeometry args={[0.08, height, 0.04]} />
+    <meshStandardMaterial color="#8d6e63" roughness={0.8} />
+  </mesh>
+);
+
+// Book edge component
+const BookEdge = ({ width, height, position }: { width: number, height: number, position: [number, number, number] }) => (
+  <mesh position={position}>
+    <boxGeometry args={[width, height, 0.02]} />
+    <meshStandardMaterial color="#6d4c41" roughness={0.8} />
+  </mesh>
+);
+
+// Page counter component
+const PageCounter = ({ currentPage, totalPages, position }: { currentPage: number, totalPages: number, position: [number, number, number] }) => (
+  <Text
+    position={position}
+    fontSize={0.05}
+    color="black"
+    anchorX="center"
+    anchorY="top"
+  >
+    {`Page ${currentPage}-${currentPage+1} of ${totalPages}`}
+  </Text>
+);
 
 type PagesProps = {
   position?: [number, number, number];
@@ -73,178 +198,75 @@ export default function Pages({
     });
   };
 
-  // Handle hover interactions
-  const handlePointerEnter = (side: 'left' | 'right') => {
-    setHoveredSide(side);
-  };
-
-  const handlePointerLeave = () => {
-    setHoveredSide(null);
-  };
-
-  // Book dimensions - larger for better visibility
+  // Book dimensions
   const pageWidth = 0.5;
   const pageHeight = pageWidth / pageScale;
-
+  
   return (
     <group position={position}>
-      {/* LEFT PAGE */}
-      <group position={[-pageWidth/2, 0, 0]}>
-        <animated.mesh
-          rotation-y={leftRotation}
-          onPointerEnter={() => handlePointerEnter('left')}
-          onPointerLeave={handlePointerLeave}
-          onClick={handlePrevPage}
-        >
-          <planeGeometry args={[pageWidth, pageHeight]} />
-          <meshStandardMaterial
-            color="#ffffff"
-            roughness={0.5}
-            metalness={0.1}
-            side={DoubleSide}
-          />
-        </animated.mesh>
-        
-        {/* Hebrew text directly on the page surface */}
-        <Text
-          position={[0, 0.1, 0.01]}
-          rotation={[0, 0, 0]}
-          fontSize={0.04}
-          color="#000000"
-          anchorX="center"
-          anchorY="middle"
-          maxWidth={pageWidth * 0.8}
-          lineHeight={1.5}
-          textAlign="right"
-        >
-          {hebrewTexts[(currentPage-1) % hebrewTexts.length]}
-        </Text>
-        
-        {/* Page number on the left page */}
-        <Text
-          position={[0, -pageHeight/2 + 0.05, 0.01]}
-          rotation={[0, 0, 0]}
-          fontSize={0.035}
-          color="#000000"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {currentPage-1}
-        </Text>
-        
-        {/* Left navigation hint */}
-        {hoveredSide === 'left' && currentPage > 1 && (
-          <group position={[-0.15, 0, 0.01]}>
-            <mesh>
-              <planeGeometry args={[0.2, 0.2]} />
-              <meshBasicMaterial color="#0000ff" transparent opacity={0.6} />
-            </mesh>
-            <Text
-              position={[0, 0, 0.01]}
-              fontSize={0.05}
-              color="white"
-              anchorX="center"
-              anchorY="middle"
-            >
-              ◀ Prev
-            </Text>
-          </group>
-        )}
-      </group>
+      {/* Left Page */}
+      <BookPage
+        side="left"
+        pageNumber={currentPage-1}
+        textContent={hebrewTexts[(currentPage-1) % hebrewTexts.length]}
+        rotation={leftRotation}
+        width={pageWidth}
+        height={pageHeight}
+        onNavigate={handlePrevPage}
+        onPointerEnter={() => setHoveredSide('left')}
+        onPointerLeave={() => setHoveredSide(null)}
+      />
       
-      {/* RIGHT PAGE */}
-      <group position={[pageWidth/2, 0, 0]}>
-        <animated.mesh
-          rotation-y={rightRotation}
-          onPointerEnter={() => handlePointerEnter('right')}
-          onPointerLeave={handlePointerLeave}
-          onClick={handleNextPage}
-        >
-          <planeGeometry args={[pageWidth, pageHeight]} />
-          <meshStandardMaterial
-            color="#ffffff"
-            roughness={0.5}
-            metalness={0.1}
-            side={DoubleSide}
-          />
-        </animated.mesh>
-        
-        {/* Hebrew text directly on the page surface */}
-        <Text
-          position={[0, 0.1, 0.01]}
-          rotation={[0, 0, 0]}
-          fontSize={0.04}
-          color="#000000"
-          anchorX="center"
-          anchorY="middle"
-          maxWidth={pageWidth * 0.8}
-          lineHeight={1.5}
-          textAlign="right"
-        >
-          {hebrewTexts[currentPage % hebrewTexts.length]}
-        </Text>
-        
-        {/* Page number on the right page */}
-        <Text
-          position={[0, -pageHeight/2 + 0.05, 0.01]}
-          rotation={[0, 0, 0]}
-          fontSize={0.035}
-          color="#000000"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {currentPage}
-        </Text>
-        
-        {/* Right navigation hint */}
-        {hoveredSide === 'right' && currentPage < totalPages && (
-          <group position={[0.15, 0, 0.01]}>
-            <mesh>
-              <planeGeometry args={[0.2, 0.2]} />
-              <meshBasicMaterial color="#0000ff" transparent opacity={0.6} />
-            </mesh>
-            <Text
-              position={[0, 0, 0.01]}
-              fontSize={0.05}
-              color="white"
-              anchorX="center"
-              anchorY="middle"
-            >
-              Next ▶
-            </Text>
-          </group>
-        )}
-      </group>
+      {/* Left Navigation Hint */}
+      <NavigationButton 
+        position={[-pageWidth/2 - 0.15, 0, 0.01]} 
+        text="◀ Prev" 
+        visible={hoveredSide === 'left' && currentPage > 1}
+      />
       
-      {/* BOOK BINDING */}
-      <mesh position={[0, 0, -0.01]}>
-        <boxGeometry args={[0.08, pageHeight, 0.04]} />
-        <meshStandardMaterial color="#8d6e63" roughness={0.8} />
-      </mesh>
+      {/* Right Page */}
+      <BookPage
+        side="right"
+        pageNumber={currentPage}
+        textContent={hebrewTexts[currentPage % hebrewTexts.length]}
+        rotation={rightRotation}
+        width={pageWidth}
+        height={pageHeight}
+        onNavigate={handleNextPage}
+        onPointerEnter={() => setHoveredSide('right')}
+        onPointerLeave={() => setHoveredSide(null)}
+      />
       
-      {/* BOOK COVER EDGES */}
-      {/* Cover edge at bottom */}
-      <mesh position={[0, -pageHeight/2 - 0.02, 0]}>
-        <boxGeometry args={[pageWidth*2 + 0.08, 0.04, 0.02]} />
-        <meshStandardMaterial color="#6d4c41" roughness={0.8} />
-      </mesh>
+      {/* Right Navigation Hint */}
+      <NavigationButton 
+        position={[pageWidth/2 + 0.15, 0, 0.01]} 
+        text="Next ▶" 
+        visible={hoveredSide === 'right' && currentPage < totalPages}
+      />
       
-      {/* Cover edge at top */}
-      <mesh position={[0, pageHeight/2 + 0.02, 0]}>
-        <boxGeometry args={[pageWidth*2 + 0.08, 0.04, 0.02]} />
-        <meshStandardMaterial color="#6d4c41" roughness={0.8} />
-      </mesh>
+      {/* Book Structure Components */}
+      <BookBinding height={pageHeight} />
       
-      {/* Page count indicator */}
-      <Text
+      {/* Bottom Edge */}
+      <BookEdge 
+        width={pageWidth*2 + 0.08} 
+        height={0.04} 
+        position={[0, -pageHeight/2 - 0.02, 0]} 
+      />
+      
+      {/* Top Edge */}
+      <BookEdge 
+        width={pageWidth*2 + 0.08} 
+        height={0.04} 
+        position={[0, pageHeight/2 + 0.02, 0]} 
+      />
+      
+      {/* Page Counter */}
+      <PageCounter 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
         position={[0, -pageHeight/2 - 0.08, 0]}
-        fontSize={0.05}
-        color="black"
-        anchorX="center"
-        anchorY="top"
-      >
-        {`Page ${currentPage}-${currentPage+1} of ${totalPages}`}
-      </Text>
+      />
     </group>
   );
 }

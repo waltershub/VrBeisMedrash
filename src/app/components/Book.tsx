@@ -8,6 +8,125 @@ import { BookProps } from './types'
 import { useBookContext } from './BookContext'
 import Pages from './Pages'
 
+// Book Title component for rendering text on spine
+const BookTitle = ({ title }: { title: string }) => (
+  <Text
+    position={[0, 0, 0.026]}
+    rotation={[0, 0, 0]}
+    fontSize={0.025}
+    color="#000"
+    anchorX="center"
+    anchorY="middle"
+    maxWidth={0.13}
+  >
+    {title}
+  </Text>
+)
+
+// Book Category component to display when book is selected
+const BookCategory = ({ parentCategory, talmudType }: { parentCategory?: string, talmudType?: string }) => (
+  <Text
+    position={[0, -0.5, 0]} 
+    rotation={[0, 0, 0]}
+    fontSize={0.04}
+    color="white"
+    anchorX="center"
+    anchorY="middle"
+    maxWidth={0.5}
+  >
+    {parentCategory}
+    {talmudType ? ` (${talmudType})` : ''}
+  </Text>
+)
+
+// Dismiss Button component
+const DismissButton = ({ position, fontSize, width, height, onDismiss }: { 
+  position: [number, number, number], 
+  fontSize: number, 
+  width: number, 
+  height: number,
+  onDismiss: (event: React.MouseEvent) => void 
+}) => (
+  <group position={position} onClick={onDismiss}>
+    <mesh castShadow receiveShadow>
+      <boxGeometry args={[width, height, 0.02]} />
+      <meshStandardMaterial color="red" roughness={0.5} />
+    </mesh>
+    <Text
+      position={[0, 0, 0.011]}
+      rotation={[0, 0, 0]}
+      fontSize={fontSize}
+      color="white"
+      anchorX="center"
+      anchorY="middle"
+    >
+      Dismiss
+    </Text>
+  </group>
+)
+
+// Closed Book View component
+const ClosedBookView = ({ 
+  meshRef, 
+  color, 
+  title, 
+  isSelected, 
+  parentCategory,
+  talmudType,
+  onDismiss 
+}: {
+  meshRef: React.RefObject<Mesh>,
+  color: string,
+  title: string,
+  isSelected: boolean,
+  parentCategory?: string,
+  talmudType?: string,
+  onDismiss: (event: React.MouseEvent) => void
+}) => (
+  <mesh ref={meshRef} castShadow receiveShadow>
+    <boxGeometry args={[0.15, 0.4, 0.05]} />
+    <meshStandardMaterial color={color} roughness={0.7} />
+    
+    {/* Book title on the spine */}
+    <BookTitle title={title} />
+    
+    {/* Display category if the book is selected */}
+    {isSelected && parentCategory && (
+      <BookCategory parentCategory={parentCategory} talmudType={talmudType} />
+    )}
+    
+    {/* Dismiss button - only visible when the book is selected */}
+    {isSelected && (
+      <DismissButton 
+        position={[0, -0.65, 0]} 
+        fontSize={0.03} 
+        width={0.25} 
+        height={0.08} 
+        onDismiss={onDismiss} 
+      />
+    )}
+  </mesh>
+)
+
+// Open Book View component
+const OpenBookView = ({ onDismiss }: { onDismiss: (event: React.MouseEvent) => void }) => (
+  <>
+    <Pages 
+      position={[0, 0, 0]}
+      pageScale={0.707}
+    />
+    
+    {/* Dismiss button for open book - positioned below the open book */}
+    <DismissButton 
+      position={[0, -0.8, 0]} 
+      fontSize={0.04} 
+      width={0.4} 
+      height={0.1} 
+      onDismiss={onDismiss} 
+    />
+  </>
+)
+
 export function Book({ position, color, index, title = "Sefer", parentCategory, talmudType }: BookProps) {
   const { selectedBook, setSelectedBook, isBookOpen, setIsBookOpen } = useBookContext();
   const meshRef = useRef<Mesh>(null);
@@ -39,7 +158,7 @@ export function Book({ position, color, index, title = "Sefer", parentCategory, 
     }
   };
   
-  // New handler specifically for dismissing the book
+  // Handler specifically for dismissing the book
   const handleDismissClick = (event: React.MouseEvent) => {
     // Stop event propagation to prevent triggering the book click
     event.stopPropagation();
@@ -58,94 +177,19 @@ export function Book({ position, color, index, title = "Sefer", parentCategory, 
     >
       {/* CLOSED BOOK - shown on shelf or when selected but not open */}
       {(!isBookOpen || !isSelected) && (
-        <mesh ref={meshRef} castShadow receiveShadow>
-          <boxGeometry args={[0.15, 0.4, 0.05]} />
-          <meshStandardMaterial color={color} roughness={0.7} />
-          
-          {/* Book title on the spine */}
-          <Text
-            position={[0, 0, 0.026]}
-            rotation={[0, 0, 0]}
-            fontSize={0.025}
-            color="#000"
-            anchorX="center"
-            anchorY="middle"
-            maxWidth={0.13}
-          >
-            {title}
-          </Text>
-          
-          {/* Display category if the book is selected */}
-          {isSelected && parentCategory && (
-            <Text
-              position={[0, -0.5, 0]} 
-              rotation={[0, 0, 0]}
-              fontSize={0.04}
-              color="white"
-              anchorX="center"
-              anchorY="middle"
-              maxWidth={0.5}
-            >
-              {parentCategory}
-              {talmudType ? ` (${talmudType})` : ''}
-            </Text>
-          )}
-          
-          {/* Dismiss button - only visible when the book is selected */}
-          {isSelected && (
-            <group position={[0, -0.65, 0]} onClick={handleDismissClick}>
-              {/* Button background */}
-              <mesh castShadow receiveShadow>
-                <boxGeometry args={[0.25, 0.08, 0.02]} />
-                <meshStandardMaterial color="red" roughness={0.5} />
-              </mesh>
-              
-              {/* Button text */}
-              <Text
-                position={[0, 0, 0.011]}
-                rotation={[0, 0, 0]}
-                fontSize={0.03}
-                color="white"
-                anchorX="center"
-                anchorY="middle"
-              >
-                Dismiss
-              </Text>
-            </group>
-          )}
-        </mesh>
+        <ClosedBookView
+          meshRef={meshRef}
+          color={color}
+          title={title}
+          isSelected={isSelected}
+          parentCategory={parentCategory}
+          talmudType={talmudType}
+          onDismiss={handleDismissClick}
+        />
       )}
       
       {/* OPEN BOOK - only visible when selected and opened */}
-      {isSelected && isBookOpen && (
-        <>
-          <Pages 
-            position={[0, 0, 0]}
-            pageScale={0.707}
-          />
-          
-          {/* Dismiss button for open book - positioned below the open book */}
-          <group position={[0, -0.8, 0]} onClick={handleDismissClick}>
-            {/* Button background */}
-            <mesh castShadow receiveShadow>
-              <boxGeometry args={[0.4, 0.1, 0.02]} />
-              <meshStandardMaterial color="red" roughness={0.5} />
-            </mesh>
-            
-            {/* Button text */}
-            <Text
-              position={[0, 0, 0.011]}
-              rotation={[0, 0, 0]}
-              fontSize={0.04}
-              color="white"
-              anchorX="center"
-              anchorY="middle"
-            >
-              Dismiss
-            </Text>
-          </group>
-        </>
-      )}
+      {isSelected && isBookOpen && <OpenBookView onDismiss={handleDismissClick} />}
     </a.group>
   )
 }
